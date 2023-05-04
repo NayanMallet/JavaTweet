@@ -6,7 +6,7 @@
  * username
  * @
  * Bio
- * Abbonement / Abbonés
+ * abonnements / abonnés
  * Mes Tweets / Réponses à des tweet (vector)
  * J'aime (vector)
  * Signets (vector)
