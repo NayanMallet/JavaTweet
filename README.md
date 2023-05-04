@@ -16,7 +16,7 @@
  * Afficher les tweets (vector)
 
 ### Tweet
- * réponses
+ * réponses (vector)
  * Like
  * Retweet
  * Signet
