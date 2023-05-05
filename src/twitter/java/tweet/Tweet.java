@@ -1,6 +1,10 @@
 package twitter.java.tweet;
 
 import twitter.java.exceptions.ExceptionsReader;
+
+import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -13,22 +17,43 @@ public class Tweet {
     private int m_retweets = 0;
     private int m_signets = 0;
     private boolean m_isPrivate = false;
-    private static String m_creationDate;
+    private static Date m_creationDate;
     private final List<Tweet> m_replies = new ArrayList<>();
+    private int m_id;
+    private String m_userHash;
 
-    public Tweet(String message) throws ExceptionsReader {
+
+    public Tweet(String message, String userHash) throws ExceptionsReader {
         if (message.isEmpty()) {
             throw new ExceptionsReader("You can't post an empty tweet !");
         } else if (message.length() > 280) {
             throw new ExceptionsReader("Your tweet must not exceed 280 characters !");
         }
         m_message = message;
-        LocalDateTime myDateObj = LocalDateTime.now();
-        DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("h:mm a · d MMM yyyy", new Locale("fr"));
-        m_creationDate = myDateObj.format(myFormatObj);
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mm a · d MMM yyyy", new Locale("fr"));
+            String formattedDate = now.format(formatter);
+            java.util.Date date = new SimpleDateFormat("MMM yyyy").parse(formattedDate);
+            m_creationDate = new java.sql.Date(date.getTime());
+        } catch (ParseException e) {
+            throw new ExceptionsReader("Error while getting creation date.");
+        }
+        m_userHash = userHash;
     }
 
-    public Tweet(String message, boolean isPrivate) throws ExceptionsReader {
+    public Tweet(String message, String userHash, Date creationDate) throws ExceptionsReader {
+        if (message.isEmpty()) {
+            throw new ExceptionsReader("You can't post an empty tweet !");
+        } else if (message.length() > 280) {
+            throw new ExceptionsReader("Your tweet must not exceed 280 characters !");
+        }
+        m_message = message;
+        m_creationDate = creationDate;
+        m_userHash = userHash;
+    }
+
+    public Tweet(String message, String userHash,  boolean isPrivate) throws ExceptionsReader {
         if (message.isEmpty()) {
             throw new ExceptionsReader("You can't post an empty tweet !");
         } else if (message.length() > 280) {
@@ -36,6 +61,19 @@ public class Tweet {
         }
         m_message = message;
         m_isPrivate = isPrivate;
+        m_userHash = userHash;
+    }
+
+    public Tweet(String message, String userHash,  Date creationDate, boolean isPrivate) throws ExceptionsReader {
+        if (message.isEmpty()) {
+            throw new ExceptionsReader("You can't post an empty tweet !");
+        } else if (message.length() > 280) {
+            throw new ExceptionsReader("Your tweet must not exceed 280 characters !");
+        }
+        m_message = message;
+        m_isPrivate = isPrivate;
+        m_creationDate = creationDate;
+        m_userHash = userHash;
     }
 
     public void show() {
@@ -72,7 +110,7 @@ public class Tweet {
         return m_message;
     }
 
-    public String getCreationDate() {
+    public Date getCreationDate() {
         return m_creationDate;
     }
 
@@ -92,6 +130,18 @@ public class Tweet {
         m_signets = signets;
     }
 
+    public int getId() {
+        return m_id;
+    }
+
+    public void setId(int id) {
+        m_id = id;
+    }
+
+    public String getUserHash() {
+        return m_userHash;
+    }
+
     public void addReplies(Tweet reply) {
         m_replies.add(reply);
     }
@@ -99,9 +149,4 @@ public class Tweet {
     public void showReplies() {
         for (Tweet mReply : m_replies) System.out.println(mReply);
     }
-
-
-
-
-
 }

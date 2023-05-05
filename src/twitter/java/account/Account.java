@@ -21,6 +21,7 @@ public class Account {
     private final Date m_creationDate;
     private String m_bio = "";
     private Country m_country;
+    private int m_id;
 
     private final List<Tweet> m_tweets = new ArrayList<>();
     private final List<Tweet> m_liked = new ArrayList<>();
@@ -65,6 +66,19 @@ public class Account {
         m_country = country;
     }
 
+    public Account(String username, String userHash, String password, String email, String phoneNumber, Date birthDate, Date creationDate, String bio, Country country, int id) {
+        m_username = username;
+        m_userHash = userHash;
+        m_password = password;
+        m_email = email;
+        m_phoneNumber = phoneNumber;
+        m_birthDate = birthDate;
+        m_creationDate = creationDate;
+        m_bio = bio;
+        m_country = country;
+        m_id = id;
+    }
+
 
     public void show() {
         System.out.printf("Username: %s\n@%s\nBio: %s\nCountry: %s\nBirth date: %s\nCreation date: %s\n", m_username, m_userHash, m_bio, m_country, m_birthDate.toString(), m_creationDate);
@@ -80,6 +94,10 @@ public class Account {
 
     public void postTweet(Tweet tweet) {
         m_tweets.add(tweet);
+    }
+
+    public void setTweets(List<Tweet> tweets) {
+        m_tweets.addAll(tweets);
     }
 
     public String getBio() {
@@ -120,5 +138,13 @@ public class Account {
 
     public Date getCreationDate() {
         return m_creationDate;
+    }
+
+    public int getId() {
+        return m_id;
+    }
+
+    public void setId(int id) {
+        m_id = id;
     }
 }
