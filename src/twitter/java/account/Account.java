@@ -3,11 +3,13 @@ package twitter.java.account;
 import twitter.java.exceptions.ExceptionsReader;
 import twitter.java.tweet.Tweet;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.sql.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class Account {
     private final String m_username;
@@ -15,8 +17,8 @@ public class Account {
     private final String m_email;
     private final String m_phoneNumber;
     private final String m_password;
-    private final String m_birthDate;
-    private final String m_creationDate;
+    private final Date m_birthDate;
+    private final Date m_creationDate;
     private String m_bio = "";
     private Country m_country;
 
@@ -45,15 +47,27 @@ public class Account {
         m_password = password;
         m_email = email;
         m_phoneNumber = phoneNumber;
-        m_birthDate = birthDate;
-        LocalDateTime myDateObj = LocalDateTime.now();
-        DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("MMM yyyy");
-        m_creationDate = myDateObj.format(myFormatObj);
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            m_birthDate = new Date(dateFormat.parse(birthDate).getTime());
+        } catch (ParseException e) {
+            throw new ExceptionsReader("Invalid date format. Please use the format dd/MM/yyyy.");
+        }
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM yyyy");
+            String formattedDate = now.format(formatter);
+            java.util.Date date = new SimpleDateFormat("MMM yyyy").parse(formattedDate);
+            m_creationDate = new java.sql.Date(date.getTime());
+        } catch (ParseException e) {
+            throw new ExceptionsReader("Error while getting creation date.");
+        }
         m_country = country;
     }
 
+
     public void show() {
-        System.out.printf("Username: %s\n@%s\nBio: %s\nCountry: %s\nBirth date: %s\nCreation date: %s\n", m_username, m_userHash, m_bio, m_country, m_birthDate, m_creationDate);
+        System.out.printf("Username: %s\n@%s\nBio: %s\nCountry: %s\nBirth date: %s\nCreation date: %s\n", m_username, m_userHash, m_bio, m_country, m_birthDate.toString(), m_creationDate);
     }
 
     public void showTweets() {
@@ -100,11 +114,11 @@ public class Account {
         return m_phoneNumber;
     }
 
-    public String getBirthDate() {
+    public Date getBirthDate() {
         return m_birthDate;
     }
 
-    public String getCreationDate() {
+    public Date getCreationDate() {
         return m_creationDate;
     }
 }
