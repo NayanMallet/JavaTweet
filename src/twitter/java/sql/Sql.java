@@ -23,7 +23,8 @@ public class Sql {
             System.out.println("Connected to the PostgreSQL server successfully.");
             List<Tweet> tweets = getTweets(connection);
             for (Tweet tweet : tweets) {
-                tweet.show(getReplies(connection, tweet.getId()));
+                tweet.show();
+                showReplies(connection, tweet.getId(), 1); // call recursive function to show replies
             }
         } catch (SQLException | ExceptionsReader e) {
             throw new RuntimeException(e);
@@ -296,6 +297,19 @@ public class Sql {
             throw new ExceptionsReader("Tweets could not be shown");
         }
         return replies;
+    }
+
+
+
+    private static void showReplies(Connection connection, int parentId, int indentationLevel) throws ExceptionsReader {
+        List<Tweet> replies = getReplies(connection, parentId);
+        for (Tweet reply : replies) {
+            for (int i = 0; i < indentationLevel; i++) {
+                System.out.print("    "); // print indentation
+            }
+            System.out.println("└─── " + reply.getMessage());
+            showReplies(connection, reply.getId(), indentationLevel + 1); // call recursively for each reply
+        }
     }
 
 //

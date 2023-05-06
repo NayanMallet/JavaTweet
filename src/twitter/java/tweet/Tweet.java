@@ -7,7 +7,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Locale;
 
 
@@ -76,13 +75,8 @@ public class Tweet {
 
 
 
-    public void show(List<Tweet> replies) {
-        System.out.printf("%s%s\n%s\n%s",(isPrivate() ? "(private)" : ""), m_message, m_creationDate, (replies.size() > 0 ? "" : replies.size() + "\n"));
-        if (replies.size() > 0) {
-            for (Tweet reply : replies) {
-                System.out.println("└─── " + reply.getMessage());
-            }
-        }
+    public void show() {
+        System.out.printf("@%s\n%s%s\n%s | %s | %s | %s \n", m_userHash,(isPrivate() ? "[PRIVATE]\n" : ""), m_message, m_likes, m_retweets, m_signets, m_creationDate);
     }
 
     public int getLikes() { return m_likes; }
