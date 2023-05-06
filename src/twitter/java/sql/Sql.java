@@ -21,7 +21,10 @@ public class Sql {
         try {
             Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
             System.out.println("Connected to the PostgreSQL server successfully.");
-            postTweet(connection, new Tweet("my first reply", "notcarla", false, 13));
+            List<Tweet> tweets = getTweets(connection);
+            for (Tweet tweet : tweets) {
+                tweet.show(getReplies(connection, tweet.getId()));
+            }
         } catch (SQLException | ExceptionsReader e) {
             throw new RuntimeException(e);
         }
@@ -56,7 +59,7 @@ public class Sql {
         return accountId;
     }
 
-    private static void updateAccount(Connection connection, Account account) throws SQLException {
+    private static void updateAccount(Connection connection, Account account) throws ExceptionsReader, SQLException {
         try {
             connection.setAutoCommit(false);
 
@@ -195,13 +198,13 @@ public class Sql {
             connection.commit();
         } catch (SQLException e) {
             connection.rollback();
-            throw e;
+            throw new ExceptionsReader("Account " + account.getUserHash() + " could not be updated");
         } finally {
             connection.setAutoCommit(true);
         }
     }
 
-    private static void postTweet(Connection connection, Tweet tweet) throws SQLException {
+    private static void postTweet(Connection connection, Tweet tweet) throws ExceptionsReader {
         String SqlQ = (tweet.getParentId() != 0 ? "INSERT INTO tweets(message, likes, retweets, signets, is_private, creation_date, user_hash, parent_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)" : "INSERT INTO tweets(message, likes, retweets, signets, is_private, creation_date, user_hash) VALUES (?, ?, ?, ?, ?, ?, ?)");
         try (PreparedStatement statement = connection.prepareStatement(SqlQ)) {
             statement.setString(1, tweet.getMessage());
@@ -214,11 +217,85 @@ public class Sql {
             if (tweet.getParentId() != 0)
                 statement.setInt(8, tweet.getParentId());
             statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new ExceptionsReader("Tweet[" + tweet.getMessage() + "] could not be posted");
         }
     }
 
-    private static void postReply(Connection connection, Tweet tweet) throws SQLException {
+    private static void updateTweet(Connection connection, Tweet tweet) throws ExceptionsReader {
+        String SqlQ = (tweet.getParentId() != 0 ? "UPDATE tweets SET message = ?, likes = ?, retweets = ?, signets = ?, is_private = ?, creation_date = ?, user_hash = ?, parent_id = ? WHERE id = ?" : "UPDATE tweets SET message = ?, likes = ?, retweets = ?, signets = ?, is_private = ?, creation_date = ?, user_hash = ? WHERE id = ?");
+        try (PreparedStatement statement = connection.prepareStatement(SqlQ)) {
+            statement.setString(1, tweet.getMessage());
+            statement.setInt(2, tweet.getLikes());
+            statement.setInt(3, tweet.getRetweets());
+            statement.setInt(4, tweet.getSignets());
+            statement.setBoolean(5, tweet.isPrivate());
+            statement.setDate(6, tweet.getCreationDate());
+            statement.setString(7, tweet.getUserHash());
+            if (tweet.getParentId() != 0)
+                statement.setInt(8, tweet.getParentId());
+            statement.setInt(9, tweet.getId());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new ExceptionsReader("Tweet[" + tweet.getId() + "] not found");
+        }
+    }
 
+    private static void deleteTweet(Connection connection, int tweetId) throws ExceptionsReader {
+        String SqlQ = "DELETE FROM tweets WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(SqlQ)) {
+            statement.setInt(1, tweetId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new ExceptionsReader("Tweet[" + tweetId + "] not found");
+        }
+    }
+
+    private static List<Tweet> getTweets(Connection connection) throws ExceptionsReader {
+        List<Tweet> tweets = new ArrayList<>();
+        String SqlQ = "SELECT * FROM tweets WHERE parent_id IS NULL";
+        try (PreparedStatement statement = connection.prepareStatement(SqlQ)) {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String message = resultSet.getString("message");
+                int likes = resultSet.getInt("likes");
+                int retweets = resultSet.getInt("retweets");
+                int signets = resultSet.getInt("signets");
+                boolean isPrivate = resultSet.getBoolean("is_private");
+                Date creationDate = resultSet.getDate("creation_date");
+                String userHash = resultSet.getString("user_hash");
+                int parentId = resultSet.getInt("parent_id");
+                tweets.add(new Tweet(message, userHash, isPrivate, likes, retweets, signets, creationDate, id, parentId));
+            }
+        } catch (SQLException e) {
+            throw new ExceptionsReader("Tweets could not be shown");
+        }
+        return tweets;
+    }
+
+    private static List<Tweet> getReplies(Connection connection, int tweetId) throws ExceptionsReader {
+        List<Tweet> replies = new ArrayList<>();
+        String SqlQ = "SELECT * FROM tweets WHERE parent_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(SqlQ)) {
+            statement.setInt(1, tweetId);
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String message = resultSet.getString("message");
+                int likes = resultSet.getInt("likes");
+                int retweets = resultSet.getInt("retweets");
+                int signets = resultSet.getInt("signets");
+                boolean isPrivate = resultSet.getBoolean("is_private");
+                Date creationDate = resultSet.getDate("creation_date");
+                String userHash = resultSet.getString("user_hash");
+                int parentId = resultSet.getInt("parent_id");
+                replies.add(new Tweet(message, userHash, isPrivate, likes, retweets, signets, creationDate, id, parentId));
+            }
+        } catch (SQLException e) {
+            throw new ExceptionsReader("Tweets could not be shown");
+        }
+        return replies;
     }
 
 //
