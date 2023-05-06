@@ -21,6 +21,7 @@ public class Sql {
         try {
             Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
             System.out.println("Connected to the PostgreSQL server successfully.");
+            updateTweet(connection, 13, 1000, 100, 3);
             List<Tweet> tweets = getTweets(connection);
             for (Tweet tweet : tweets) {
                 tweet.show();
@@ -223,24 +224,35 @@ public class Sql {
         }
     }
 
-    private static void updateTweet(Connection connection, Tweet tweet) throws ExceptionsReader {
-        String SqlQ = (tweet.getParentId() != 0 ? "UPDATE tweets SET message = ?, likes = ?, retweets = ?, signets = ?, is_private = ?, creation_date = ?, user_hash = ?, parent_id = ? WHERE id = ?" : "UPDATE tweets SET message = ?, likes = ?, retweets = ?, signets = ?, is_private = ?, creation_date = ?, user_hash = ? WHERE id = ?");
+    private static void updateTweet(Connection connection, int tweetId, int likes, int retweets, int signets) throws ExceptionsReader {
+        String SqlQ = "UPDATE tweets SET likes = ?, retweets = ?, signets = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(SqlQ)) {
-            statement.setString(1, tweet.getMessage());
-            statement.setInt(2, tweet.getLikes());
-            statement.setInt(3, tweet.getRetweets());
-            statement.setInt(4, tweet.getSignets());
-            statement.setBoolean(5, tweet.isPrivate());
-            statement.setDate(6, tweet.getCreationDate());
-            statement.setString(7, tweet.getUserHash());
-            if (tweet.getParentId() != 0)
-                statement.setInt(8, tweet.getParentId());
-            statement.setInt(9, tweet.getId());
+            statement.setInt(1, likes);
+            statement.setInt(2, retweets);
+            statement.setInt(3, signets);
+            statement.setInt(4, tweetId);
             statement.executeUpdate();
         } catch (SQLException e) {
-            throw new ExceptionsReader("Tweet[" + tweet.getId() + "] not found");
+            throw new ExceptionsReader("Tweet[" + tweetId + "] not found");
         }
     }
+
+//    String SqlQ = (tweet.getParentId() != 0 ? "UPDATE tweets SET message = ?, likes = ?, retweets = ?, signets = ?, is_private = ?, creation_date = ?, user_hash = ?, parent_id = ? WHERE id = ?" : "UPDATE tweets SET message = ?, likes = ?, retweets = ?, signets = ?, is_private = ?, creation_date = ?, user_hash = ? WHERE id = ?");
+//        try (PreparedStatement statement = connection.prepareStatement(SqlQ)) {
+//        statement.setString(1, tweet.getMessage());
+//        statement.setInt(2, tweet.getLikes());
+//        statement.setInt(3, tweet.getRetweets());
+//        statement.setInt(4, tweet.getSignets());
+//        statement.setBoolean(5, tweet.isPrivate());
+//        statement.setDate(6, tweet.getCreationDate());
+//        statement.setString(7, tweet.getUserHash());
+//        if (tweet.getParentId() != 0)
+//            statement.setInt(8, tweet.getParentId());
+//        statement.setInt(9, tweet.getId());
+//        statement.executeUpdate();
+//    } catch (SQLException e) {
+//        throw new ExceptionsReader("Tweet[" + tweet.getId() + "] not found");
+//    }
 
     private static void deleteTweet(Connection connection, int tweetId) throws ExceptionsReader {
         String SqlQ = "DELETE FROM tweets WHERE id = ?";
