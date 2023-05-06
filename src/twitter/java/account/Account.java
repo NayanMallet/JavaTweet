@@ -23,8 +23,13 @@ public class Account {
     private Country m_country;
     private int m_id;
 
-    private final List<Tweet> m_tweets = new ArrayList<>();
-    private final List<Tweet> m_liked = new ArrayList<>();
+    private List<Tweet> m_tweets = new ArrayList<>();
+    private List<Integer> m_liked = new ArrayList<>();
+    private List<Integer> m_retweeted = new ArrayList<>();
+    private List<Integer> m_signeted = new ArrayList<>();
+    private List<String> m_following = new ArrayList<>();
+    private List<String> m_followers = new ArrayList<>();
+
 
     public Account(String username, String userHash, String password, String email, String phoneNumber, String birthDate, Country country) throws ExceptionsReader {
         if (username.isEmpty()) {
@@ -66,7 +71,43 @@ public class Account {
         m_country = country;
     }
 
-    public Account(String username, String userHash, String password, String email, String phoneNumber, Date birthDate, Date creationDate, String bio, Country country, int id) {
+    /**
+     * Constructor for Account
+     * @param username Username of the account
+     * @param userHash Hash of the username
+     * @param password Password of the account
+     * @param email Email of the account
+     * @param phoneNumber Phone number of the account
+     * @param birthDate Birthdate of the account
+     * @param creationDate Creation date of the account
+     * @param bio Bio of the account
+     * @param country Country of the account
+     * @param id ID of the account
+     * @param tweets List of tweets of the account
+     * @param liked List of liked tweets of the account
+     * @param retweeted List of retweeted tweets of the account
+     * @param signeted List of signeted tweets of the account
+     * @param following List of accounts followed by the account
+     * @param followers List of accounts following the account
+     */
+    public Account(
+            String username,
+            String userHash,
+            String password,
+            String email,
+            String phoneNumber,
+            Date birthDate,
+            Date creationDate,
+            String bio,
+            Country country,
+            int id,
+            List<Tweet> tweets,
+            List<Integer> liked,
+            List<Integer> retweeted,
+            List<Integer> signeted,
+            List<String> following,
+            List<String> followers
+    ) {
         m_username = username;
         m_userHash = userHash;
         m_password = password;
@@ -77,6 +118,12 @@ public class Account {
         m_bio = bio;
         m_country = country;
         m_id = id;
+        m_tweets = tweets;
+        m_liked = liked;
+        m_retweeted = retweeted;
+        m_signeted = signeted;
+        m_following = following;
+        m_followers = followers;
     }
 
 
@@ -84,67 +131,65 @@ public class Account {
         System.out.printf("Username: %s\n@%s\nBio: %s\nCountry: %s\nBirth date: %s\nCreation date: %s\n", m_username, m_userHash, m_bio, m_country, m_birthDate.toString(), m_creationDate);
     }
 
-    public void showTweets() {
-        System.out.printf("------ %s's tweets -----\n", m_username);
-        for (Tweet tweet : m_tweets) {
-            tweet.show();
-        }
-        System.out.println("-------------------------");
-    }
+    public String getBio() { return m_bio; }
 
-    public void postTweet(Tweet tweet) {
-        m_tweets.add(tweet);
-    }
+    public Country getCountry() { return m_country; }
 
-    public void setTweets(List<Tweet> tweets) {
-        m_tweets.addAll(tweets);
-    }
+    public void setBio(String bio) { m_bio = bio; }
 
-    public String getBio() {
-        return m_bio;
-    }
+    public String getUserHash() { return m_userHash; }
 
-    public Country getCountry() {
-        return m_country;
-    }
+    public String getUsername() { return m_username; }
 
-    public void setBio(String bio) {
-        m_bio = bio;
-    }
+    public String getPassword() { return m_password; }
 
-    public String getUserHash() {
-        return m_userHash;
-    }
+    public String getEmail() { return m_email; }
 
-    public String getUsername() {
-        return m_username;
-    }
+    public String getPhoneNumber() { return m_phoneNumber; }
 
-    public String getPassword() {
-        return m_password;
-    }
+    public Date getBirthDate() { return m_birthDate; }
 
-    public String getEmail() {
-        return m_email;
-    }
+    public Date getCreationDate() { return m_creationDate; }
 
-    public String getPhoneNumber() {
-        return m_phoneNumber;
-    }
+    public int getId() { return m_id; }
 
-    public Date getBirthDate() {
-        return m_birthDate;
-    }
+    public List<Tweet> getTweets() { return m_tweets; }
 
-    public Date getCreationDate() {
-        return m_creationDate;
-    }
+    public List<Integer> getLiked() { return m_liked; }
 
-    public int getId() {
-        return m_id;
-    }
+    public List<Integer> getRetweeted() { return m_retweeted; }
 
-    public void setId(int id) {
-        m_id = id;
-    }
+    public List<Integer> getSigneted() { return m_signeted; }
+
+    public List<String> getFollowing() { return m_following; }
+
+    public List<String> getFollowers() { return m_followers; }
+
+
+
+    public void addTweet(Tweet tweetId) { m_tweets.add(tweetId); }
+
+    public void setTweets(List<Tweet> tweets) { m_tweets.addAll(tweets); }
+
+    public void addLiked(int tweetId) { m_liked.add(tweetId); }
+
+    public void setLiked(List<Integer> liked) { m_liked.addAll(liked); }
+
+    public void addRetweeted(int tweetId) { m_retweeted.add(tweetId); }
+
+    public void setRetweeted(List<Integer> retweeted) { m_retweeted.addAll(retweeted); }
+
+    public void addSigneted(int tweetId) { m_signeted.add(tweetId); }
+
+    public void setSigneted(List<Integer> signeted) { m_signeted.addAll(signeted); }
+
+    public void addFollowing(String username) { m_following.add(username); }
+
+    public void setFollowing(List<String> following) { m_following.addAll(following); }
+
+    public void addFollowers(String username) { m_followers.add(username); }
+
+    public void setFollowers(List<String> followers) { m_followers.addAll(followers); }
+
+    public void setId(int id) { m_id = id; }
 }
