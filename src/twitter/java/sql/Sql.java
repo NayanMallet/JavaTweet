@@ -3,6 +3,7 @@ package twitter.java.sql;
 import twitter.java.account.Account;
 import twitter.java.account.Country;
 import twitter.java.exceptions.ExceptionsReader;
+import twitter.java.message.Message;
 import twitter.java.tweet.Tweet;
 
 import java.sql.*;
@@ -22,17 +23,23 @@ public class Sql {
         try {
             Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
             System.out.println("Connected to the PostgreSQL server successfully.");
-
-            updateTweetsLikedTable(connection, "notcarla", new ArrayList<>(Collections.singletonList(21)));
-            updateTweetsRetweetedTable(connection, "notcarla", new ArrayList<>(Collections.singletonList(21)));
-            updateTweetsSignetsTable(connection, "notcarla", new ArrayList<>(Collections.singletonList(21)));
-            System.out.println("Done");
+            showMessages(connection, "nayanle2");
+//            updateTweetsLikedTable(connection, "notcarla", new ArrayList<>(Collections.singletonList(21)));
+//            updateTweetsRetweetedTable(connection, "notcarla", new ArrayList<>(Collections.singletonList(21)));
+//            updateTweetsSignetsTable(connection, "notcarla", new ArrayList<>(Collections.singletonList(21)));
+//
 //            List<Tweet> tweets = getTweets(connection);
 //            for (Tweet tweet : tweets) {
 //                tweet.show();
 //                showReplies(connection, tweet.getId(), 1); // call recursive function to show replies
 //            }
-        } catch (SQLException | ExceptionsReader e) {
+
+            sendAMessage(connection, new Message("notcarla", "nayanle2", "Hello, how are you?"));
+            sendAMessage(connection, new Message("notcarla", "nayanle2", "fine and you?"));
+            sendAMessage(connection, new Message("nayanle2", "notcarla", "fine too, thanks"));
+            sendAMessage(connection, new Message("notcarla", "nayanle2", "bye"));
+            System.out.println("Done");
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
@@ -546,6 +553,41 @@ public class Sql {
             }
             System.out.println("└─── " + reply.getMessage());
             showReplies(connection, reply.getId(), indentationLevel + 1); // call recursively for each reply
+        }
+    }
+
+    public static void sendAMessage(Connection connection, Message message) throws SQLException {
+        String query = "INSERT INTO messages(sender_hash, receiver_hash, message, creation_date) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, message.getSenderHash());
+            statement.setString(2, message.getReceiverHash());
+            statement.setString(3, message.getContent());
+            statement.setDate(4, message.getCreationDate());
+            statement.executeUpdate();
+        }
+    }
+
+    public static List<Message> lookForMessage(Connection connection, String userHash) throws SQLException {
+        List<Message> messages = new ArrayList<>();
+        String query = "SELECT id, sender_hash, message, creation_date FROM messages WHERE receiver_hash = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, userHash);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String senderUserHash = rs.getString("sender_hash");
+                String content = rs.getString("message");
+                java.sql.Date creationDate = rs.getDate("creation_date");
+                messages.add(new Message(id, senderUserHash, userHash, content, creationDate));
+            }
+        }
+        return messages;
+    }
+
+    public static void showMessages(Connection connection, String userHash) throws SQLException {
+        List<Message> messages = lookForMessage(connection, userHash);
+        for (Message message : messages) {
+            message.show();
         }
     }
 }
