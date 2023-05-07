@@ -9,13 +9,15 @@ public class Message {
     private String m_receiverHash;
     private String m_content;
     private Date m_creationDate;
+    private boolean m_isRead = false;
 
-    public Message(int id, String senderHash, String receiverHash, String content, Date creationDate) {
+    public Message(int id, String senderHash, String receiverHash, String content, Date creationDate, boolean isRead) {
         m_id = id;
         m_senderHash = senderHash;
         m_receiverHash = receiverHash;
         m_content = content;
         m_creationDate = creationDate;
+        m_isRead = isRead;
     }
 
     public Message(String senderHash, String receiverHash, String content) {
@@ -25,8 +27,12 @@ public class Message {
         m_creationDate = Date.valueOf(LocalDateTime.now(ZoneId.of("UTC")).toLocalDate());
     }
 
-    public void show() {
-        System.out.printf("ID : %d\nSender : %s\nReceiver : %s\nContent : %s\nCreation date : %s\n", m_id, m_senderHash, m_receiverHash, m_content, m_creationDate.toString());
+    public void show(boolean isSender) {
+        if (isSender) {
+            System.out.printf("@%s\n%s\n%s\n%s\n", m_senderHash, m_content, m_creationDate, (m_isRead ? "✅" : "❌"));
+        } else {
+            System.out.printf("%20s@%s\n%20s%s\n%20s%s\n%20s%s\n", "", m_senderHash,"", m_content,"", m_creationDate,"", (m_isRead ? "✅" : "❌"));
+        }
     }
 
     public int getId() {

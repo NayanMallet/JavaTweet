@@ -23,21 +23,12 @@ public class Sql {
         try {
             Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
             System.out.println("Connected to the PostgreSQL server successfully.");
-            showMessages(connection, "nayanle2");
-//            updateTweetsLikedTable(connection, "notcarla", new ArrayList<>(Collections.singletonList(21)));
-//            updateTweetsRetweetedTable(connection, "notcarla", new ArrayList<>(Collections.singletonList(21)));
-//            updateTweetsSignetsTable(connection, "notcarla", new ArrayList<>(Collections.singletonList(21)));
-//
+            showMessages(connection, "nayanle2", "notcarla");
 //            List<Tweet> tweets = getTweets(connection);
 //            for (Tweet tweet : tweets) {
 //                tweet.show();
 //                showReplies(connection, tweet.getId(), 1); // call recursive function to show replies
 //            }
-
-            sendAMessage(connection, new Message("notcarla", "nayanle2", "Hello, how are you?"));
-            sendAMessage(connection, new Message("notcarla", "nayanle2", "fine and you?"));
-            sendAMessage(connection, new Message("nayanle2", "notcarla", "fine too, thanks"));
-            sendAMessage(connection, new Message("notcarla", "nayanle2", "bye"));
             System.out.println("Done");
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -567,29 +558,62 @@ public class Sql {
         }
     }
 
-    public static List<Message> lookForMessage(Connection connection, String userHash) throws SQLException {
-        List<Message> messages = new ArrayList<>();
-        String query = "SELECT id, sender_hash, message, creation_date FROM messages WHERE receiver_hash = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, userHash);
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String senderUserHash = rs.getString("sender_hash");
-                String content = rs.getString("message");
-                java.sql.Date creationDate = rs.getDate("creation_date");
-                messages.add(new Message(id, senderUserHash, userHash, content, creationDate));
+    public static List<Message> getConversation(Connection connection, String senderHash, String receiverHash) throws SQLException {
+        String sql = "SELECT * FROM messages WHERE (sender_hash = ? AND receiver_hash = ?) OR (sender_hash = ? AND receiver_hash = ?) ORDER BY creation_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, senderHash);
+            pstmt.setString(2, receiverHash);
+            pstmt.setString(3, receiverHash);
+            pstmt.setString(4, senderHash);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                List<Message> messages = new ArrayList<>();
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String sender = rs.getString("sender_hash");
+                    String receiver = rs.getString("receiver_hash");
+                    String message = rs.getString("message");
+                    java.sql.Timestamp timestamp = rs.getTimestamp("creation_date");
+                    boolean isRead = rs.getBoolean("is_read");
+                    Message msg = new Message(id, sender, receiver, message, new Date(timestamp.getTime()), isRead);
+                    messages.add(msg);
+                }
+                // Set all messages to read
+                setAllMessagesToRead(connection, senderHash, receiverHash);
+                return messages;
             }
         }
-        return messages;
     }
 
-    public static void showMessages(Connection connection, String userHash) throws SQLException {
-        List<Message> messages = lookForMessage(connection, userHash);
-        for (Message message : messages) {
-            message.show();
+    public static void setAllMessagesToRead(Connection connection, String senderHash, String receiverHash) throws SQLException {
+        String query = "UPDATE messages SET is_read = TRUE WHERE sender_hash = ? AND receiver_hash = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, senderHash);
+            stmt.setString(2, receiverHash);
+            stmt.executeUpdate();
         }
     }
+
+    public static void deleteMessage(Connection connection, int messageId) throws SQLException {
+        String query = "DELETE FROM messages WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, messageId);
+            stmt.executeUpdate();
+        }
+    }
+
+
+    public static void showMessages(Connection connection, String userHash, String otherUserHash) throws SQLException {
+        List<Message> messages = getConversation(connection, userHash, otherUserHash);
+        for (Message message : messages) {
+            if (message.getSenderHash().equals(userHash)) {
+                message.show(true);
+            } else {
+                message.show(false);
+            }
+        }
+        setAllMessagesToRead(connection, userHash, otherUserHash);
+    }
+
 }
 
 //    CREATE TABLE accounts (
