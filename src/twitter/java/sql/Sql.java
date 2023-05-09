@@ -12,26 +12,41 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.sql.Types.NULL;
+import io.github.cdimascio.dotenv.Dotenv;
+import io.github.cdimascio.dotenv.DotenvBuilder;
+
 
 public class Sql {
 
-    private static final String DB_URL = "jdbc:postgresql://db.aaojrvmiytpbeiksvuve.supabase.co:5432/postgres";
-    private static final String DB_USER = "postgres";
-    private static final String DB_PASSWORD = "Demmiw-3nusfo-nubfez";
-
     public static void main(String[] args) {
+        // Load environment variables from .env file
+        Dotenv dotenv = new DotenvBuilder().load();
+
+        // Access environment variables
+        String DB_URL = dotenv.get("DB_URL3");
+        String DB_USER = dotenv.get("DB_USER");
+        String DB_PASSWORD = dotenv.get("DB_PASSWORD");
+
+        Connection connection = null;
         try {
-            Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
             System.out.println("Connected to the PostgreSQL server successfully.");
-            showMessages(connection, "nayanle2", "notcarla");
 //            List<Tweet> tweets = getTweets(connection);
 //            for (Tweet tweet : tweets) {
 //                tweet.show();
 //                showReplies(connection, tweet.getId(), 1); // call recursive function to show replies
 //            }
-            System.out.println("Done");
+            showMessages(connection, "nayanle2", "notcarla");
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.out.println("Erreur lors de la connexion à la base de données : " + e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.out.println("Erreur lors de la fermeture de la connexion : " + e.getMessage());
+            }
         }
     }
 
