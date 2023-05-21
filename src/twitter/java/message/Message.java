@@ -28,8 +28,8 @@ public class Message {
     }
 
     public void show(boolean isSender) {
-        if (isSender) {
-            System.out.printf("@%s\n%s\n%s\n%s\n", m_senderHash, m_content, m_creationDate, (m_isRead ? "✅" : "❌"));
+        if (!isSender) {
+            System.out.printf("@%s\n%s\n%s\n", m_senderHash, m_content, m_creationDate);
         } else {
             System.out.printf("%20s@%s\n%20s%s\n%20s%s\n%20s%s\n", "", m_senderHash,"", m_content,"", m_creationDate,"", (m_isRead ? "✅" : "❌"));
         }

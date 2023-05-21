@@ -1,34 +1,29 @@
 package twitter.java.account;
 
 import twitter.java.exceptions.ExceptionsReader;
+import twitter.java.sql.Sql;
 import twitter.java.tweet.Tweet;
 
+import java.sql.Connection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.sql.Date;
-import java.util.List;
 
 public class Account {
-    private final String m_username;
+    private String m_username;
     private final String m_userHash;
-    private final String m_email;
-    private final String m_phoneNumber;
-    private final String m_password;
-    private final Date m_birthDate;
+    private String m_email;
+    private String m_phoneNumber;
+    private String m_password;
+    private Date m_birthDate;
     private final Date m_creationDate;
     private String m_bio = "";
     private Country m_country;
     private int m_id;
-
-    private List<Tweet> m_tweets = new ArrayList<>();
-    private List<Integer> m_liked = new ArrayList<>();
-    private List<Integer> m_retweeted = new ArrayList<>();
-    private List<Integer> m_signeted = new ArrayList<>();
-    private List<String> m_following = new ArrayList<>();
-    private List<String> m_followers = new ArrayList<>();
+    private int m_followersCount = 0;
+    private int m_followingsCount = 0;
 
 
     public Account(String username, String userHash, String password, String email, String phoneNumber, String birthDate, Country country) throws ExceptionsReader {
@@ -83,12 +78,6 @@ public class Account {
      * @param bio Bio of the account
      * @param country Country of the account
      * @param id ID of the account
-     * @param tweets List of tweets of the account
-     * @param liked List of liked tweets of the account
-     * @param retweeted List of retweeted tweets of the account
-     * @param signeted List of signeted tweets of the account
-     * @param following List of accounts followed by the account
-     * @param followers List of accounts following the account
      */
     public Account(
             String username,
@@ -101,12 +90,9 @@ public class Account {
             String bio,
             Country country,
             int id,
-            List<Tweet> tweets,
-            List<Integer> liked,
-            List<Integer> retweeted,
-            List<Integer> signeted,
-            List<String> following,
-            List<String> followers
+            int followersCount,
+            int followingsCount
+
     ) {
         m_username = username;
         m_userHash = userHash;
@@ -118,17 +104,14 @@ public class Account {
         m_bio = bio;
         m_country = country;
         m_id = id;
-        m_tweets = tweets;
-        m_liked = liked;
-        m_retweeted = retweeted;
-        m_signeted = signeted;
-        m_following = following;
-        m_followers = followers;
+        m_followersCount = followersCount;
+        m_followingsCount = followingsCount;
     }
 
 
-    public void show() {
-        System.out.printf("Username: %s\n@%s\nBio: %s\nCountry: %s\nBirth date: %s\nCreation date: %s\n", m_username, m_userHash, m_bio, m_country, m_birthDate.toString(), m_creationDate);
+    public void show(Connection connection) throws ExceptionsReader {
+        System.out.printf("------ %s ------\n@%s\nBio: %s\nCountry: %s\nBirth date: %s\nCreation date: %s\nFollowers: %d\nFollowing: %d\n-------%s-------\n",
+                m_username, m_userHash, m_bio, m_country, m_birthDate.toString(), m_creationDate, getFollowersCount(), getFollowingsCount(), "-".repeat(m_username.length()));
     }
 
     public String getBio() { return m_bio; }
@@ -153,43 +136,29 @@ public class Account {
 
     public int getId() { return m_id; }
 
-    public List<Tweet> getTweets() { return m_tweets; }
-
-    public List<Integer> getLiked() { return m_liked; }
-
-    public List<Integer> getRetweeted() { return m_retweeted; }
-
-    public List<Integer> getSigneted() { return m_signeted; }
-
-    public List<String> getFollowing() { return m_following; }
-
-    public List<String> getFollowers() { return m_followers; }
-
-
-
-    public void addTweet(Tweet tweetId) { m_tweets.add(tweetId); }
-
-    public void setTweets(List<Tweet> tweets) { m_tweets.addAll(tweets); }
-
-    public void addLiked(int tweetId) { m_liked.add(tweetId); }
-
-    public void setLiked(List<Integer> liked) { m_liked.addAll(liked); }
-
-    public void addRetweeted(int tweetId) { m_retweeted.add(tweetId); }
-
-    public void setRetweeted(List<Integer> retweeted) { m_retweeted.addAll(retweeted); }
-
-    public void addSigneted(int tweetId) { m_signeted.add(tweetId); }
-
-    public void setSigneted(List<Integer> signeted) { m_signeted.addAll(signeted); }
-
-    public void addFollowing(String username) { m_following.add(username); }
-
-    public void setFollowing(List<String> following) { m_following.addAll(following); }
-
-    public void addFollowers(String username) { m_followers.add(username); }
-
-    public void setFollowers(List<String> followers) { m_followers.addAll(followers); }
-
     public void setId(int id) { m_id = id; }
+
+    public void setCountry(Country country) { m_country = country; }
+
+    public void setBirthDate(Date date) { m_birthDate = date; }
+
+    public void setPhoneNumber(String newPhoneNumber) {
+        m_phoneNumber = newPhoneNumber;
+    }
+
+    public void setEmail(String newEmail) {
+        m_email = newEmail;
+    }
+
+    public void setPassword(String newPassword) {
+        m_password = newPassword;
+    }
+
+    public void setUsername(String newUsername) {
+        m_username = newUsername;
+    }
+
+    public int getFollowersCount() { return m_followersCount; }
+
+    public int getFollowingsCount() { return m_followingsCount; }
 }
